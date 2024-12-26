@@ -46,8 +46,7 @@ class _MyAppState extends State<MyApp> {
 
   void filePressed(ExplorerFile file) {
     if ((file.size ?? 0) > 200000) {
-      final snackBar =
-          SnackBar(content: Text('Can\'t open files with size > 200kb'));
+      final snackBar = SnackBar(content: Text('Can\'t open files with size > 200kb'));
 
       // Find the Scaffold in the widget tree and use it to show a SnackBar.
       ScaffoldMessenger.of(context).showSnackBar(snackBar);

@@ -1,8 +1,7 @@
 part of 'pdf_view_pinch.dart';
 
 /// Pages control
-class PdfControllerPinch extends TransformationController
-    with BasePdfController {
+class PdfControllerPinch extends TransformationController with BasePdfController {
   PdfControllerPinch({
     required this.document,
     this.initialPage = 1,
@@ -10,8 +9,7 @@ class PdfControllerPinch extends TransformationController
   }) : assert(viewportFraction > 0.0);
 
   @override
-  final ValueNotifier<PdfLoadingState> loadingState =
-      ValueNotifier(PdfLoadingState.loading);
+  final ValueNotifier<PdfLoadingState> loadingState = ValueNotifier(PdfLoadingState.loading);
 
   /// Document future for showing in [PdfViewPinch]
   Future<PdfDocument> document;
@@ -79,21 +77,25 @@ class PdfControllerPinch extends TransformationController
     try {
       _state?._releasePages();
 
+      //Stopwatch stopwatch = Stopwatch();
+      //stopwatch.start();
       _document = await documentFuture;
 
       _state!._pages.clear();
       final List<_PdfPageState> pages = [];
-      final firstPage = await _document!.getPage(1, autoCloseAndroid: true);
-      final firstPageSize = Size(
-        firstPage.width,
-        firstPage.height,
-      );
+
       for (int i = 0; i < _document!.pagesCount; i++) {
+        // From both a memory and performance perspective, it is safe to retrieve all pages from the document.
+        // Page sizes must also be collected to ensure proper layout, animations, and page navigation functionality.
+        final pdfPage = await _document!.getPage(i + 1, autoCloseAndroid: true);
         pages.add(_PdfPageState._(
           pageNumber: i + 1,
-          pageSize: firstPageSize,
+          pageSize: Size(pdfPage.width, pdfPage.height),
         ));
       }
+
+      //print('IK. Document loading time: ${stopwatch.elapsed}');
+
       _state!._firstControllerAttach = true;
       _state!._pages.addAll(pages);
 
@@ -103,8 +105,7 @@ class PdfControllerPinch extends TransformationController
 
       loadingState.value = PdfLoadingState.success;
     } catch (error) {
-      _state!._loadingError =
-          error is Exception ? error : Exception('Unknown error');
+      _state!._loadingError = error is Exception ? error : Exception('Unknown error');
       loadingState.value = PdfLoadingState.error;
     }
   }
@@ -173,11 +174,17 @@ class PdfControllerPinch extends TransformationController
       return Future.value();
     }
 
+    final destination = calculatePageFitMatrix(
+      pageNumber: pageNumber,
+      padding: padding,
+    );
+
+    if (destination != null) {
+      value = destination;
+    }
+
     return goTo(
-      destination: calculatePageFitMatrix(
-        pageNumber: pageNumber,
-        padding: padding,
-      ),
+      destination: destination,
       duration: duration,
     );
   }
@@ -262,7 +269,7 @@ enum _PdfPageLoadingStatus {
   initialized,
   pageLoading,
   pageLoaded,
-  disposed
+  disposed,
 }
 
 /// Internal page control structure.

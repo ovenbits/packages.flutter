@@ -13,20 +13,13 @@ class PinchPage extends StatefulWidget {
 enum DocShown { sample, tutorial, hello, password }
 
 class _PinchPageState extends State<PinchPage> {
-  static const int _initialPage = 1;
   DocShown _showing = DocShown.sample;
   late PdfControllerPinch _pdfControllerPinch;
 
   @override
   void initState() {
     _pdfControllerPinch = PdfControllerPinch(
-      // document: PdfDocument.openAsset('assets/hello.pdf'),
-      document: PdfDocument.openData(
-        InternetFile.get(
-          "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK",
-        ),
-      ),
-      initialPage: _initialPage,
+      document: PdfDocument.openAsset('assets/strong.pdf'),
     );
     super.initState();
   }
@@ -77,17 +70,22 @@ class _PinchPageState extends State<PinchPage> {
             onPressed: () {
               switch (_showing) {
                 case DocShown.sample:
+                  _pdfControllerPinch.loadDocument(PdfDocument.openData(
+                    InternetFile.get(
+                      "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK",
+                    ),
+                  ));
+                  _showing = DocShown.sample;
+                  break;
+
                 case DocShown.tutorial:
-                  _pdfControllerPinch.loadDocument(
-                      PdfDocument.openAsset('assets/flutter_tutorial.pdf'));
+                  _pdfControllerPinch.loadDocument(PdfDocument.openAsset('assets/flutter_tutorial.pdf'));
                   _showing = DocShown.hello;
                   break;
+
                 case DocShown.hello:
-                  _pdfControllerPinch
-                      .loadDocument(PdfDocument.openAsset('assets/hello.pdf'));
-                  _showing = UniversalPlatform.isWeb
-                      ? DocShown.password
-                      : DocShown.tutorial;
+                  _pdfControllerPinch.loadDocument(PdfDocument.openAsset('assets/hello.pdf'));
+                  _showing = UniversalPlatform.isWeb ? DocShown.password : DocShown.tutorial;
                   break;
 
                 case DocShown.password:
@@ -103,12 +101,15 @@ class _PinchPageState extends State<PinchPage> {
         ],
       ),
       body: PdfViewPinch(
+        onDocumentLoaded: (document) {
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            _pdfControllerPinch.jumpToPage(document.pagesCount - 2);
+          });
+        },
         builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
           options: const DefaultBuilderOptions(),
-          documentLoaderBuilder: (_) =>
-              const Center(child: CircularProgressIndicator()),
-          pageLoaderBuilder: (_) =>
-              const Center(child: CircularProgressIndicator()),
+          documentLoaderBuilder: (_) => const Center(child: CircularProgressIndicator()),
+          pageLoaderBuilder: (_) => const Center(child: CircularProgressIndicator()),
           errorBuilder: (_, error) => Center(child: Text(error.toString())),
         ),
         controller: _pdfControllerPinch,

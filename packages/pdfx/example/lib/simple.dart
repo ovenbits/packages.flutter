@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
@@ -67,11 +68,9 @@ class _SimplePageState extends State<SimplePage> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               if (_isSampleDoc) {
-                _pdfController.loadDocument(
-                    PdfDocument.openAsset('assets/flutter_tutorial.pdf'));
+                _pdfController.loadDocument(PdfDocument.openAsset('assets/flutter_tutorial.pdf'));
               } else {
-                _pdfController
-                    .loadDocument(PdfDocument.openAsset('assets/hello.pdf'));
+                _pdfController.loadDocument(PdfDocument.openAsset('assets/hello.pdf'));
               }
               _isSampleDoc = !_isSampleDoc;
             },
@@ -79,12 +78,22 @@ class _SimplePageState extends State<SimplePage> {
         ],
       ),
       body: PdfView(
+        scrollDirection: Axis.vertical,
+        pageSnapping: true,
+        renderer: (page) {
+          final devicePixelRatio = PlatformDispatcher.instance.views.first.devicePixelRatio;
+          return page.render(
+            width: page.width * devicePixelRatio.ceil(),
+            height: page.height * devicePixelRatio.ceil(),
+            quality: 90,
+            format: PdfPageImageFormat.jpeg,
+            backgroundColor: '#ffffff',
+          );
+        },
         builders: PdfViewBuilders<DefaultBuilderOptions>(
           options: const DefaultBuilderOptions(),
-          documentLoaderBuilder: (_) =>
-              const Center(child: CircularProgressIndicator()),
-          pageLoaderBuilder: (_) =>
-              const Center(child: CircularProgressIndicator()),
+          documentLoaderBuilder: (_) => const Center(child: CircularProgressIndicator()),
+          pageLoaderBuilder: (_) => const Center(child: CircularProgressIndicator()),
           pageBuilder: _pageBuilder,
         ),
         controller: _pdfController,
