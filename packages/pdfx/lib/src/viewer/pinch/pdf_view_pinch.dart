@@ -358,8 +358,8 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
         page
           ..status = _PdfPageLoadingStatus.pageLoading
           ..preview = await page.pdfPage.createTexture();
-        final w = page.pdfPage.width; // * 2;
-        final h = page.pdfPage.height; // * 2
+        final w = page.pdfPage.width;
+        final h = page.pdfPage.height;
 
         await page.preview!.updateRect(
           documentId: _controller._document!.id,

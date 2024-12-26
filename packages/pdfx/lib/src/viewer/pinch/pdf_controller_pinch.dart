@@ -25,6 +25,12 @@ class PdfControllerPinch extends TransformationController with BasePdfController
     return value;
   }
 
+  @override
+  void dispose() {
+    _document?.close();
+    super.dispose();
+  }
+
   /// The fraction of the viewport that each page should occupy.
   ///
   /// Defaults to 1.0, which means each page fills the viewport in the scrolling

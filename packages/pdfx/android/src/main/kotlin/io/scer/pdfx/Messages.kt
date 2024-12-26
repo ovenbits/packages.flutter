@@ -25,13 +25,17 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.RuntimeException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Messages(private val binding : FlutterPlugin.FlutterPluginBinding,
                private val documents: DocumentRepository,
                private val pages: PageRepository) : Pigeon.PdfxApi {
 
-    private val textures: SparseArray<TextureRegistry.SurfaceTextureEntry> = SparseArray()
+    private val textures: SparseArray<TextureRegistry.SurfaceProducer> = SparseArray()
 
     override fun openDocumentData(
         message: Pigeon.OpenDataMessage,
@@ -153,44 +157,49 @@ class Messages(private val binding : FlutterPlugin.FlutterPluginBinding,
         result: Pigeon.Result<Pigeon.RenderPageReply>
     ) {
         val resultResponse = Pigeon.RenderPageReply()
-        try {
-            val pageId = message.pageId!!
-            val width = message.width!!.toInt()
-            val height = message.height!!.toInt()
-            val format = message.format?.toInt() ?: 1 //0 Bitmap.CompressFormat.PNG
-            val forPrint = message.forPrint ?: false;
-            val backgroundColor = message.backgroundColor
-            val color = if (backgroundColor != null) Color.parseColor(backgroundColor) else Color.TRANSPARENT
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val pageId = message.pageId!!
+                    val width = message.width!!.toInt()
+                    val height = message.height!!.toInt()
+                    val format = message.format?.toInt() ?: 1 //0 Bitmap.CompressFormat.PNG
+                    val forPrint = message.forPrint ?: false;
+                    val backgroundColor = message.backgroundColor
+                    val color = if (backgroundColor != null) Color.parseColor(backgroundColor) else Color.TRANSPARENT
 
-            val crop = message.crop!!
-            val cropX = if (crop) message.cropX!!.toInt() else 0
-            val cropY = if (crop) message.cropY!!.toInt() else 0
-            val cropH = if (crop) message.cropHeight!!.toInt() else 0
-            val cropW = if (crop) message.cropWidth!!.toInt() else 0
+                    val crop = message.crop!!
+                    val cropX = if (crop) message.cropX!!.toInt() else 0
+                    val cropY = if (crop) message.cropY!!.toInt() else 0
+                    val cropH = if (crop) message.cropHeight!!.toInt() else 0
+                    val cropW = if (crop) message.cropWidth!!.toInt() else 0
 
-            val quality = message.quality?.toInt() ?: 100
+                    val quality = message.quality?.toInt() ?: 100
 
-            val page = pages.get(pageId)
+                    val page = pages.get(pageId)
 
-            val tempOutFileExtension = when (format) {
-                0 -> "jpg"
-                1 -> "png"
-                2 -> "webp"
-                else -> "jpg"
+                    val tempOutFileExtension = when (format) {
+                        0 -> "jpg"
+                        1 -> "png"
+                        2 -> "webp"
+                        else -> "jpg"
+                    }
+                    val tempOutFolder = File(binding.applicationContext.cacheDir, "pdf_renderer_cache")
+                    tempOutFolder.mkdirs()
+                    val tempOutFile = File(tempOutFolder, "$randomFilename.$tempOutFileExtension")
+
+                    withContext(Dispatchers.Main) {
+                        val pageImage = page.render(tempOutFile, width, height, color, format, crop, cropX, cropY, cropW, cropH, quality, forPrint)
+                        resultResponse.path = pageImage.path
+                        resultResponse.width = pageImage.width.toLong()
+                        resultResponse.height = pageImage.height.toLong()
+                        result.success(resultResponse)
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        result.error(PdfRendererException("pdf_renderer", "Unexpected error", e))
+                    }
+                }
             }
-            val tempOutFolder = File(binding.applicationContext.cacheDir, "pdf_renderer_cache")
-            tempOutFolder.mkdirs()
-            val tempOutFile = File(tempOutFolder, "$randomFilename.$tempOutFileExtension")
-
-            val pageImage = page.render(tempOutFile, width, height, color, format, crop, cropX, cropY, cropW, cropH, quality, forPrint)
-            resultResponse.path = pageImage.path
-            resultResponse.width = pageImage.width.toLong()
-            resultResponse.height = pageImage.height.toLong()
-            result.success(resultResponse)
-
-        } catch (e: Exception) {
-            result.error(PdfRendererException("pdf_renderer", "Unexpected error", e))
-        }
     }
 
     override fun closePage(message: Pigeon.IdMessage) {
@@ -207,7 +216,7 @@ class Messages(private val binding : FlutterPlugin.FlutterPluginBinding,
     }
 
     override fun registerTexture(): Pigeon.RegisterTextureReply {
-        val surfaceTexture = binding.textureRegistry.createSurfaceTexture()
+        val surfaceTexture = binding.textureRegistry.createSurfaceProducer()
         val id = surfaceTexture.id().toInt()
         textures.put(id, surfaceTexture)
         val result = Pigeon.RegisterTextureReply()
@@ -253,10 +262,10 @@ class Messages(private val binding : FlutterPlugin.FlutterPluginBinding,
                 val texWidth = message.textureWidth!!.toInt()
                 val texHeight = message.textureHeight!!.toInt()
                 if (texWidth != 0 && texHeight != 0) {
-                    tex.surfaceTexture().setDefaultBufferSize(texWidth, texHeight)
+                    tex.setSize(texWidth, texHeight)
                 }
 
-                Surface(tex.surfaceTexture()).use {
+                tex.surface.use {
                     val canvas = it.lockCanvas(Rect(destX, destY, width, height))
 
                     canvas.drawBitmap(bmp, destX.toFloat(), destY.toFloat(), null)
@@ -280,7 +289,7 @@ class Messages(private val binding : FlutterPlugin.FlutterPluginBinding,
         val width = message.width!!.toInt()
         val height = message.height!!.toInt()
         val tex = textures[texId]
-        tex?.surfaceTexture()?.setDefaultBufferSize(width, height)
+        tex?.setSize(width, height)
         result.success(null)
     }
 

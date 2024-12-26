@@ -9,8 +9,7 @@ class PdfController with BasePdfController {
   }) : assert(viewportFraction > 0.0);
 
   @override
-  final ValueNotifier<PdfLoadingState> loadingState =
-      ValueNotifier(PdfLoadingState.loading);
+  final ValueNotifier<PdfLoadingState> loadingState = ValueNotifier(PdfLoadingState.loading);
 
   /// Document future for showing in [PdfView]
   Future<PdfDocument> document;
@@ -73,8 +72,7 @@ class PdfController with BasePdfController {
     required Duration duration,
     required Curve curve,
   }) =>
-      _pageController!.animateToPage(_pageController!.page!.round() + 1,
-          duration: duration, curve: curve);
+      _pageController!.animateToPage(_pageController!.page!.round() + 1, duration: duration, curve: curve);
 
   /// Animates the controlled [PdfView] to the previous page.
   ///
@@ -86,8 +84,7 @@ class PdfController with BasePdfController {
     required Duration duration,
     required Curve curve,
   }) =>
-      _pageController!.animateToPage(_pageController!.page!.round() - 1,
-          duration: duration, curve: curve);
+      _pageController!.animateToPage(_pageController!.page!.round() - 1, duration: duration, curve: curve);
 
   /// Load document
   Future<void> loadDocument(
@@ -115,8 +112,7 @@ class PdfController with BasePdfController {
       _document = await documentFuture;
       loadingState.value = PdfLoadingState.success;
     } catch (error) {
-      _pdfViewState!._loadingError =
-          error is Exception ? error : Exception('Unknown error');
+      _pdfViewState!._loadingError = error is Exception ? error : Exception('Unknown error');
       loadingState.value = PdfLoadingState.error;
     }
   }
@@ -149,5 +145,6 @@ class PdfController with BasePdfController {
 
   void dispose() {
     _pageController?.dispose();
+    _document?.close();
   }
 }
