@@ -51,10 +51,12 @@ class PdfController with BasePdfController {
   /// The returned [Future] resolves when the animation completes.
   ///
   /// The `duration` and `curve` arguments must not be null.
-  Future<void> animateToPage(
-    int page, {
-    required Duration duration,
-    required Curve curve,
+  @override
+  Future<void> animateToPage({
+    required int pageNumber,
+    double? padding,
+    Duration duration = const Duration(milliseconds: 500),
+    Curve curve = Curves.easeInOut,
   }) =>
       _pageController!.animateToPage(
         page - 1,
@@ -143,6 +145,7 @@ class PdfController with BasePdfController {
     _pdfViewState = null;
   }
 
+  @override
   void dispose() {
     _pageController?.dispose();
     _document?.close();

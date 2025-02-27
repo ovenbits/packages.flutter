@@ -56,20 +56,20 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        localizationsDelegates: [
+        localizationsDelegates: const [
           ExplorerLocalizationsDelegate(),
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
-        supportedLocales: [
-          const Locale('en', ''),
-          const Locale('ru', ''),
-          const Locale('fr', ''),
+        supportedLocales: const [
+          Locale('en', ''),
+          Locale('ru', ''),
+          Locale('fr', ''),
         ],
         home: Scaffold(
           body: Explorer(
             controller: _controller,
-            builder: (_) => [
+            builder: (_) => const [
               ExplorerToolbar(),
               ExplorerActionView(),
               ExplorerFilesGridView(),

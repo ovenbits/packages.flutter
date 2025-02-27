@@ -172,6 +172,7 @@ class PdfControllerPinch extends TransformationController with BasePdfController
       );
 
   /// Go to the specified page.
+  @override
   Future<void> animateToPage({
     required int pageNumber,
     double? padding,
