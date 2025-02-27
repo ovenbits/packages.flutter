@@ -29,6 +29,9 @@ class PdfView extends StatefulWidget {
     this.scrollDirection = Axis.horizontal,
     this.reverse = false,
     this.pageSnapping = true,
+    this.wantKeepAlive = false,
+    this.gaplessPlayback = false,
+    this.allowImplicitScrolling = false,
     this.physics,
     this.backgroundDecoration = const BoxDecoration(),
     Key? key,
@@ -60,6 +63,19 @@ class PdfView extends StatefulWidget {
 
   /// Set to false to disable page snapping, useful for custom scroll behavior.
   final bool pageSnapping;
+
+  /// When user attempts to move it to the next element, focus will traverse to the next page in the page view.
+  final bool allowImplicitScrolling;
+
+  /// This is used to keep the state of an page image in the view (e.g. scale state).
+  /// `false` -> resets the state (default)
+  /// `true`  -> keeps the state
+  final bool wantKeepAlive;
+
+  /// This is used to continue showing the old page image (`true`), or briefly show
+  /// nothing (`false`), when the `imageProvider` changes. By default it's set
+  /// to `false`.
+  final bool gaplessPlayback;
 
   /// Pdf widget page background decoration
   final BoxDecoration? backgroundDecoration;
@@ -112,8 +128,7 @@ class _PdfViewState extends State<PdfView> {
     super.dispose();
   }
 
-  Future<PdfPageImage> _getPageImage(int pageIndex) =>
-      _lock.synchronized<PdfPageImage>(() async {
+  Future<PdfPageImage> _getPageImage(int pageIndex) => _lock.synchronized<PdfPageImage>(() async {
         if (_pages[pageIndex] != null) {
           return _pages[pageIndex]!;
         }
@@ -154,14 +169,12 @@ class _PdfViewState extends State<PdfView> {
         case PdfLoadingState.loading:
           return KeyedSubtree(
             key: const Key('pdfx.root.loading'),
-            child: builders.documentLoaderBuilder?.call(context) ??
-                const SizedBox(),
+            child: builders.documentLoaderBuilder?.call(context) ?? const SizedBox(),
           );
         case PdfLoadingState.error:
           return KeyedSubtree(
             key: const Key('pdfx.root.error'),
-            child: builders.errorBuilder?.call(context, loadingError!) ??
-                Center(child: Text(loadingError.toString())),
+            child: builders.errorBuilder?.call(context, loadingError!) ?? Center(child: Text(loadingError.toString())),
           );
         case PdfLoadingState.success:
           return KeyedSubtree(
@@ -208,9 +221,7 @@ class _PdfViewState extends State<PdfView> {
           _controller._document!,
         ),
         itemCount: _controller._document?.pagesCount ?? 0,
-        loadingBuilder: (_, __) =>
-            widget.builders.pageLoaderBuilder?.call(context) ??
-            const SizedBox(),
+        loadingBuilder: (_, __) => widget.builders.pageLoaderBuilder?.call(context) ?? const SizedBox(),
         backgroundDecoration: widget.backgroundDecoration,
         pageController: _controller._pageController,
         onPageChanged: (index) {
@@ -222,5 +233,8 @@ class _PdfViewState extends State<PdfView> {
         reverse: widget.reverse,
         scrollPhysics: widget.physics,
         pageSnapping: widget.pageSnapping,
+        allowImplicitScrolling: widget.allowImplicitScrolling,
+        wantKeepAlive: widget.wantKeepAlive,
+        gaplessPlayback: widget.gaplessPlayback,
       );
 }
