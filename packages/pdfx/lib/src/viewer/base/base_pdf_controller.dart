@@ -9,6 +9,8 @@ mixin BasePdfController {
 
   void dispose();
 
+  void jumpToPage(int page);
+
   Future<void> animateToPage({
     required int pageNumber,
     double? padding,

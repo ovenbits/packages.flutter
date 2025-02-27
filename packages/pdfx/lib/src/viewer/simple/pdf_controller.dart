@@ -43,6 +43,7 @@ class PdfController with BasePdfController {
   ///
   /// Jumps the page position from its current value to the given value,
   /// without animation, and without checking if the new value is in range.
+  @override
   void jumpToPage(int page) => _pageController!.jumpToPage(page - 1);
 
   /// Animates the controlled [PdfView] from the current page to the given page.

@@ -150,6 +150,7 @@ class PdfControllerPinch extends TransformationController with BasePdfController
   ///
   /// Jumps the page position from its current value to the given value,
   /// without animation, and without checking if the new value is in range.
+  @override
   void jumpToPage(int page) => animateToPage(
         pageNumber: page + 1,
         duration: Duration.zero,
