@@ -94,10 +94,12 @@ class PdfControllerPinch extends TransformationController with BasePdfController
         // From both a memory and performance perspective, it is safe to retrieve all pages from the document.
         // Page sizes must also be collected to ensure proper layout, animations, and page navigation functionality.
         final pdfPage = await _document!.getPage(i + 1, autoCloseAndroid: true);
-        pages.add(_PdfPageState._(
+        final page = _PdfPageState._(
           pageNumber: i + 1,
+          pdfPage: pdfPage,
           pageSize: Size(pdfPage.width, pdfPage.height),
-        ));
+        );
+        pages.add(page);
       }
 
       //print('IK. Document loading time: ${stopwatch.elapsed}');
@@ -270,8 +272,6 @@ class PdfControllerPinch extends TransformationController with BasePdfController
 }
 
 enum _PdfPageLoadingStatus {
-  notInitialized,
-  initializing,
   initialized,
   pageLoading,
   pageLoaded,
@@ -283,21 +283,22 @@ class _PdfPageState {
   _PdfPageState._({
     required this.pageNumber,
     required this.pageSize,
+    required this.pdfPage,
   });
 
   /// Page number (started at 1).
   final int pageNumber;
 
   /// [PdfPage] corresponding to the page if available.
-  late final PdfPage pdfPage;
+  final PdfPage pdfPage;
+
+  /// Size at 72-dpi. During the initialization, the size may be just a
+  /// copy of the size of the first page.
+  final Size pageSize;
 
   /// Where the page is layed out if available. It can be null to not show
   /// in the view.
   Rect? rect;
-
-  /// Size at 72-dpi. During the initialization, the size may be just a
-  ///  copy of the size of the first page.
-  Size pageSize;
 
   /// Preview image of the page rendered at low resolution.
   PdfPageTexture? preview;
@@ -312,7 +313,7 @@ class _PdfPageState {
   /// Whether the page is visible within the view or not.
   bool isVisibleInsideView = false;
 
-  _PdfPageLoadingStatus status = _PdfPageLoadingStatus.notInitialized;
+  _PdfPageLoadingStatus status = _PdfPageLoadingStatus.initialized;
 
   final _previewNotifier = ValueNotifier<int>(0);
   final _realSizeNotifier = ValueNotifier<int>(0);

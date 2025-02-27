@@ -34,8 +34,8 @@ class Xcode {
   Future<int> runXcodeBuild(
     Directory directory, {
     List<String> actions = const <String>['build'],
-    required String workspace,
-    required String scheme,
+    required String? workspace,
+    required String? scheme,
     String? configuration,
     List<String> extraFlags = const <String>[],
   }) {
@@ -51,16 +51,14 @@ class Xcode {
     if (log) {
       print(completeTestCommand);
     }
-    return processRunner.runAndStream(_xcRunCommand, args,
-        workingDir: directory);
+    return processRunner.runAndStream(_xcRunCommand, args, workingDir: directory);
   }
 
   /// Returns true if [project], which should be an .xcodeproj directory,
   /// contains a target called [target], false if it does not, and null if the
   /// check fails (e.g., if [project] is not an Xcode project).
   Future<bool?> projectHasTarget(Directory project, String target) async {
-    final io.ProcessResult result =
-        await processRunner.run(_xcRunCommand, <String>[
+    final io.ProcessResult result = await processRunner.run(_xcRunCommand, <String>[
       _xcodeBuildCommand,
       '-list',
       '-json',
@@ -72,16 +70,14 @@ class Xcode {
     }
     Map<String, dynamic>? projectInfo;
     try {
-      projectInfo = (jsonDecode(result.stdout as String)
-          as Map<String, dynamic>)['project'] as Map<String, dynamic>?;
+      projectInfo = (jsonDecode(result.stdout as String) as Map<String, dynamic>)['project'] as Map<String, dynamic>?;
     } on FormatException {
       return null;
     }
     if (projectInfo == null) {
       return null;
     }
-    final List<String>? targets =
-        (projectInfo['targets'] as List<dynamic>?)?.cast<String>();
+    final List<String>? targets = (projectInfo['targets'] as List<dynamic>?)?.cast<String>();
     return targets?.contains(target) ?? false;
   }
 
@@ -96,39 +92,29 @@ class Xcode {
       'available',
       '--json',
     ];
-    final String findSimulatorCompleteCommand =
-        '$_xcRunCommand ${findSimulatorsArguments.join(' ')}';
+    final String findSimulatorCompleteCommand = '$_xcRunCommand ${findSimulatorsArguments.join(' ')}';
     if (log) {
       print('Looking for available simulators...');
       print(findSimulatorCompleteCommand);
     }
-    final io.ProcessResult findSimulatorsResult =
-        await processRunner.run(_xcRunCommand, findSimulatorsArguments);
+    final io.ProcessResult findSimulatorsResult = await processRunner.run(_xcRunCommand, findSimulatorsArguments);
     if (findSimulatorsResult.exitCode != 0) {
       if (log) {
-        printError(
-            'Error occurred while running "$findSimulatorCompleteCommand":\n'
+        printError('Error occurred while running "$findSimulatorCompleteCommand":\n'
             '${findSimulatorsResult.stderr}');
       }
       return null;
     }
-    final Map<String, dynamic> simulatorListJson =
-        jsonDecode(findSimulatorsResult.stdout as String)
-            as Map<String, dynamic>;
-    final List<Map<String, dynamic>> runtimes =
-        (simulatorListJson['runtimes'] as List<dynamic>)
-            .cast<Map<String, dynamic>>();
-    final Map<String, Object> devices =
-        (simulatorListJson['devices'] as Map<String, dynamic>)
-            .cast<String, Object>();
+    final Map<String, dynamic> simulatorListJson = jsonDecode(findSimulatorsResult.stdout as String) as Map<String, dynamic>;
+    final List<Map<String, dynamic>> runtimes = (simulatorListJson['runtimes'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final Map<String, Object> devices = (simulatorListJson['devices'] as Map<String, dynamic>).cast<String, Object>();
     if (runtimes.isEmpty || devices.isEmpty) {
       return null;
     }
     String? id;
     // Looking for runtimes, trying to find one with highest OS version.
     for (final Map<String, dynamic> rawRuntimeMap in runtimes.reversed) {
-      final Map<String, Object> runtimeMap =
-          rawRuntimeMap.cast<String, Object>();
+      final Map<String, Object> runtimeMap = rawRuntimeMap.cast<String, Object>();
       if ((runtimeMap['name'] as String?)?.contains('iOS') != true) {
         continue;
       }
@@ -136,8 +122,7 @@ class Xcode {
       if (runtimeID == null) {
         continue;
       }
-      final List<Map<String, dynamic>>? devicesForRuntime =
-          (devices[runtimeID] as List<dynamic>?)?.cast<Map<String, dynamic>>();
+      final List<Map<String, dynamic>>? devicesForRuntime = (devices[runtimeID] as List<dynamic>?)?.cast<Map<String, dynamic>>();
       if (devicesForRuntime == null || devicesForRuntime.isEmpty) {
         continue;
       }

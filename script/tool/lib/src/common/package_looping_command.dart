@@ -52,8 +52,7 @@ class PackageResult {
   PackageResult.success() : this._(RunState.succeeded);
 
   /// A run that was skipped as explained in [reason].
-  PackageResult.skip(String reason)
-      : this._(RunState.skipped, <String>[reason]);
+  PackageResult.skip(String reason) : this._(RunState.skipped, <String>[reason]);
 
   /// A run that was excluded by the command invocation.
   PackageResult.exclude() : this._(RunState.excluded);
@@ -62,8 +61,7 @@ class PackageResult {
   ///
   /// If [errors] are provided, they will be listed in the summary, otherwise
   /// the summary will simply show that the package failed.
-  PackageResult.fail([List<String> errors = const <String>[]])
-      : this._(RunState.failed, errors);
+  PackageResult.fail([List<String> errors = const <String>[]]) : this._(RunState.failed, errors);
 
   const PackageResult._(this.state, [this.details = const <String>[]]);
 
@@ -89,8 +87,7 @@ abstract class PackageLoopingCommand extends PluginCommand {
     ProcessRunner processRunner = const ProcessRunner(),
     Platform platform = const LocalPlatform(),
     GitDir? gitDir,
-  }) : super(packagesDir,
-            processRunner: processRunner, platform: platform, gitDir: gitDir) {
+  }) : super(packagesDir, processRunner: processRunner, platform: platform, gitDir: gitDir) {
     argParser.addOption(
       _skipByFlutterVersionArg,
       help: 'Skip any packages that require a Flutter version newer than '
@@ -103,14 +100,11 @@ abstract class PackageLoopingCommand extends PluginCommand {
     );
   }
 
-  static const String _skipByFlutterVersionArg =
-      'skip-if-not-supporting-flutter-version';
-  static const String _skipByDartVersionArg =
-      'skip-if-not-supporting-dart-version';
+  static const String _skipByFlutterVersionArg = 'skip-if-not-supporting-flutter-version';
+  static const String _skipByDartVersionArg = 'skip-if-not-supporting-dart-version';
 
   /// Packages that had at least one [logWarning] call.
-  final Set<PackageEnumerationEntry> _packagesWithWarnings =
-      <PackageEnumerationEntry>{};
+  final Set<PackageEnumerationEntry> _packagesWithWarnings = <PackageEnumerationEntry>{};
 
   /// Number of warnings that happened outside of a [runForPackage] call.
   int _otherWarningCount = 0;
@@ -135,15 +129,9 @@ abstract class PackageLoopingCommand extends PluginCommand {
         yield* getTargetPackages(filterExcluded: false);
         break;
       case PackageLoopingType.includeExamples:
-        await for (final PackageEnumerationEntry packageEntry
-            in getTargetPackages(filterExcluded: false)) {
+        await for (final PackageEnumerationEntry packageEntry in getTargetPackages(filterExcluded: false)) {
           yield packageEntry;
-          yield* Stream<PackageEnumerationEntry>.fromIterable(packageEntry
-              .package
-              .getExamples()
-              .map((RepositoryPackage package) => PackageEnumerationEntry(
-                  package,
-                  excluded: packageEntry.excluded)));
+          yield* Stream<PackageEnumerationEntry>.fromIterable(packageEntry.package.getExamples().map((RepositoryPackage package) => PackageEnumerationEntry(package, excluded: packageEntry.excluded)));
         }
         break;
       case PackageLoopingType.includeAllSubpackages:
@@ -246,12 +234,10 @@ abstract class PackageLoopingCommand extends PluginCommand {
     bool succeeded;
     if (captureOutput) {
       final List<String> output = <String>[];
-      final ZoneSpecification logSwitchSpecification = ZoneSpecification(
-          print: (Zone self, ZoneDelegate parent, Zone zone, String message) {
+      final ZoneSpecification logSwitchSpecification = ZoneSpecification(print: (Zone self, ZoneDelegate parent, Zone zone, String message) {
         output.add(message);
       });
-      succeeded = await runZoned<Future<bool>>(_runInternal,
-          zoneSpecification: logSwitchSpecification);
+      succeeded = await runZoned<Future<bool>>(_runInternal, zoneSpecification: logSwitchSpecification);
       await handleCapturedOutput(output);
     } else {
       succeeded = await _runInternal();
@@ -268,22 +254,17 @@ abstract class PackageLoopingCommand extends PluginCommand {
     _currentPackageEntry = null;
 
     final String minFlutterVersionArg = getStringArg(_skipByFlutterVersionArg);
-    final Version? minFlutterVersion = minFlutterVersionArg.isEmpty
-        ? null
-        : Version.parse(minFlutterVersionArg);
+    final Version? minFlutterVersion = minFlutterVersionArg.isEmpty ? null : Version.parse(minFlutterVersionArg);
     final String minDartVersionArg = getStringArg(_skipByDartVersionArg);
-    final Version? minDartVersion =
-        minDartVersionArg.isEmpty ? null : Version.parse(minDartVersionArg);
+    final Version? minDartVersion = minDartVersionArg.isEmpty ? null : Version.parse(minDartVersionArg);
 
     final DateTime runStart = DateTime.now();
 
     await initializeRun();
 
-    final List<PackageEnumerationEntry> targetPackages =
-        await getPackagesToProcess().toList();
+    final List<PackageEnumerationEntry> targetPackages = await getPackagesToProcess().toList();
 
-    final Map<PackageEnumerationEntry, PackageResult> results =
-        <PackageEnumerationEntry, PackageResult>{};
+    final Map<PackageEnumerationEntry, PackageResult> results = <PackageEnumerationEntry, PackageResult>{};
     for (final PackageEnumerationEntry entry in targetPackages) {
       final DateTime packageStart = DateTime.now();
       _currentPackageEntry = entry;
@@ -298,17 +279,14 @@ abstract class PackageLoopingCommand extends PluginCommand {
 
       PackageResult result;
       try {
-        result = await _runForPackageIfSupported(entry.package,
-            minFlutterVersion: minFlutterVersion,
-            minDartVersion: minDartVersion);
+        result = await _runForPackageIfSupported(entry.package, minFlutterVersion: minFlutterVersion, minDartVersion: minDartVersion);
       } catch (e, stack) {
         printError(e.toString());
         printError(stack.toString());
         result = PackageResult.fail(<String>['Unhandled exception']);
       }
       if (result.state == RunState.skipped) {
-        _printColorized('${indentation}SKIPPING: ${result.details.first}',
-            Styles.DARK_GRAY);
+        _printColorized('${indentation}SKIPPING: ${result.details.first}', Styles.DARK_GRAY);
       }
       results[entry] = result;
 
@@ -328,8 +306,7 @@ abstract class PackageLoopingCommand extends PluginCommand {
 
     print('\n');
     // If there were any errors reported, summarize them and exit.
-    if (results.values
-        .any((PackageResult result) => result.state == RunState.failed)) {
+    if (results.values.any((PackageResult result) => result.state == RunState.failed)) {
       _printFailureSummary(targetPackages, results);
       return false;
     }
@@ -352,21 +329,17 @@ abstract class PackageLoopingCommand extends PluginCommand {
   }) async {
     if (minFlutterVersion != null) {
       final Pubspec pubspec = package.parsePubspec();
-      final VersionConstraint? flutterConstraint =
-          pubspec.environment?['flutter'];
-      if (flutterConstraint != null &&
-          !flutterConstraint.allows(minFlutterVersion)) {
-        return PackageResult.skip(
-            'Does not support Flutter ${minFlutterVersion.toString()}');
+      final VersionConstraint? flutterConstraint = pubspec.environment['flutter'];
+      if (flutterConstraint != null && !flutterConstraint.allows(minFlutterVersion)) {
+        return PackageResult.skip('Does not support Flutter ${minFlutterVersion.toString()}');
       }
     }
 
     if (minDartVersion != null) {
       final Pubspec pubspec = package.parsePubspec();
-      final VersionConstraint? dartConstraint = pubspec.environment?['sdk'];
+      final VersionConstraint? dartConstraint = pubspec.environment['sdk'];
       if (dartConstraint != null && !dartConstraint.allows(minDartVersion)) {
-        return PackageResult.skip(
-            'Does not support Dart ${minDartVersion.toString()}');
+        return PackageResult.skip('Does not support Dart ${minDartVersion.toString()}');
       }
     }
 
@@ -387,18 +360,14 @@ abstract class PackageLoopingCommand extends PluginCommand {
   /// Something is always printed to make it easier to distinguish between
   /// a command running for a package and producing no output, and a command
   /// not having been run for a package.
-  void _printPackageHeading(PackageEnumerationEntry entry,
-      {required DateTime startTime}) {
+  void _printPackageHeading(PackageEnumerationEntry entry, {required DateTime startTime}) {
     final String packageDisplayName = entry.package.displayName;
-    String heading = entry.excluded
-        ? 'Not running for $packageDisplayName; excluded'
-        : 'Running for $packageDisplayName';
+    String heading = entry.excluded ? 'Not running for $packageDisplayName; excluded' : 'Running for $packageDisplayName';
 
     if (shouldLogTiming) {
       final Duration relativeTime = DateTime.now().difference(startTime);
       final String timeString = _formatDurationAsRelativeTime(relativeTime);
-      heading =
-          hasLongOutput ? '$heading [@$timeString]' : '[$timeString] $heading';
+      heading = hasLongOutput ? '$heading [@$timeString]' : '[$timeString] $heading';
     }
 
     if (hasLongOutput) {
@@ -415,36 +384,22 @@ abstract class PackageLoopingCommand extends PluginCommand {
   }
 
   /// Prints a summary of packges run, packages skipped, and warnings.
-  void _printRunSummary(List<PackageEnumerationEntry> packages,
-      Map<PackageEnumerationEntry, PackageResult> results) {
-    final Set<PackageEnumerationEntry> skippedPackages = results.entries
-        .where((MapEntry<PackageEnumerationEntry, PackageResult> entry) =>
-            entry.value.state == RunState.skipped)
-        .map((MapEntry<PackageEnumerationEntry, PackageResult> entry) =>
-            entry.key)
-        .toSet();
-    final int skipCount = skippedPackages.length +
-        packages
-            .where((PackageEnumerationEntry package) => package.excluded)
-            .length;
+  void _printRunSummary(List<PackageEnumerationEntry> packages, Map<PackageEnumerationEntry, PackageResult> results) {
+    final Set<PackageEnumerationEntry> skippedPackages = results.entries.where((MapEntry<PackageEnumerationEntry, PackageResult> entry) => entry.value.state == RunState.skipped).map((MapEntry<PackageEnumerationEntry, PackageResult> entry) => entry.key).toSet();
+    final int skipCount = skippedPackages.length + packages.where((PackageEnumerationEntry package) => package.excluded).length;
     // Split the warnings into those from packages that ran, and those that
     // were skipped.
-    final Set<PackageEnumerationEntry> _skippedPackagesWithWarnings =
-        _packagesWithWarnings.intersection(skippedPackages);
+    final Set<PackageEnumerationEntry> _skippedPackagesWithWarnings = _packagesWithWarnings.intersection(skippedPackages);
     final int skippedWarningCount = _skippedPackagesWithWarnings.length;
-    final int runWarningCount =
-        _packagesWithWarnings.length - skippedWarningCount;
+    final int runWarningCount = _packagesWithWarnings.length - skippedWarningCount;
 
-    final String runWarningSummary =
-        runWarningCount > 0 ? ' ($runWarningCount with warnings)' : '';
-    final String skippedWarningSummary =
-        runWarningCount > 0 ? ' ($skippedWarningCount with warnings)' : '';
+    final String runWarningSummary = runWarningCount > 0 ? ' ($runWarningCount with warnings)' : '';
+    final String skippedWarningSummary = runWarningCount > 0 ? ' ($skippedWarningCount with warnings)' : '';
     print('------------------------------------------------------------');
     if (hasLongOutput) {
       _printPerPackageRunOverview(packages, skipped: skippedPackages);
     }
-    print(
-        'Ran for ${packages.length - skipCount} package(s)$runWarningSummary');
+    print('Ran for ${packages.length - skipCount} package(s)$runWarningSummary');
     if (skipCount > 0) {
       print('Skipped $skipCount package(s)$skippedWarningSummary');
     }
@@ -455,9 +410,7 @@ abstract class PackageLoopingCommand extends PluginCommand {
 
   /// Prints a one-line-per-package overview of the run results for each
   /// package.
-  void _printPerPackageRunOverview(
-      List<PackageEnumerationEntry> packageEnumeration,
-      {required Set<PackageEnumerationEntry> skipped}) {
+  void _printPerPackageRunOverview(List<PackageEnumerationEntry> packageEnumeration, {required Set<PackageEnumerationEntry> skipped}) {
     print('Run overview:');
     for (final PackageEnumerationEntry entry in packageEnumeration) {
       final bool hadWarning = _packagesWithWarnings.contains(entry);
@@ -486,8 +439,7 @@ abstract class PackageLoopingCommand extends PluginCommand {
   }
 
   /// Prints a summary of all of the failures from [results].
-  void _printFailureSummary(List<PackageEnumerationEntry> packageEnumeration,
-      Map<PackageEnumerationEntry, PackageResult> results) {
+  void _printFailureSummary(List<PackageEnumerationEntry> packageEnumeration, Map<PackageEnumerationEntry, PackageResult> results) {
     const String indentation = '  ';
     _printError(failureListHeader);
     for (final PackageEnumerationEntry entry in packageEnumeration) {
@@ -496,8 +448,7 @@ abstract class PackageLoopingCommand extends PluginCommand {
         final String errorIndentation = indentation * 2;
         String errorDetails = '';
         if (result.details.isNotEmpty) {
-          errorDetails =
-              ':\n$errorIndentation${result.details.join('\n$errorIndentation')}';
+          errorDetails = ':\n$errorIndentation${result.details.join('\n$errorIndentation')}';
         }
         _printError('$indentation${entry.package.displayName}$errorDetails');
       }
@@ -518,6 +469,5 @@ abstract class PackageLoopingCommand extends PluginCommand {
   /// Returns a duration [d] formatted as minutes:seconds. Does not use hours,
   /// since time logging is primarily intended for CI, where durations should
   /// always be less than an hour.
-  String _formatDurationAsRelativeTime(Duration d) =>
-      '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+  String _formatDurationAsRelativeTime(Duration d) => '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
 }

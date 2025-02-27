@@ -183,12 +183,10 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
     _controller.value = _animGoTo!.value;
   }
 
-  void _reLayout(Size? viewSize) {
-    if (_pages.isEmpty) {
-      return;
-    }
-    _reLayoutDefault(viewSize!);
+  void _reLayout(Size viewSize) {
+    if (_pages.isEmpty) return;
 
+    _reLayoutDefault(viewSize);
     _lastViewSize = viewSize;
 
     if (_firstControllerAttach) {
@@ -338,22 +336,6 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
         continue;
       }
 
-      if (page.status == _PdfPageLoadingStatus.notInitialized) {
-        page
-          ..status = _PdfPageLoadingStatus.initializing
-          ..pdfPage = await _controller._document!.getPage(
-            page.pageNumber,
-            autoCloseAndroid: true,
-          );
-        final prevPageSize = page.pageSize;
-        page
-          ..pageSize = Size(page.pdfPage.width, page.pdfPage.height)
-          ..status = _PdfPageLoadingStatus.initialized;
-        if (prevPageSize != page.pageSize && mounted) {
-          _reLayout(_lastViewSize);
-          return;
-        }
-      }
       if (page.status == _PdfPageLoadingStatus.initialized) {
         page
           ..status = _PdfPageLoadingStatus.pageLoading

@@ -22,8 +22,7 @@ class CreateAllPluginsAppCommand extends PluginCommand {
     Directory packagesDir, {
     Directory? pluginsRoot,
   }) : super(packagesDir) {
-    final Directory defaultDir =
-        pluginsRoot ?? packagesDir.fileSystem.currentDirectory;
+    final Directory defaultDir = pluginsRoot ?? packagesDir.fileSystem.currentDirectory;
     argParser.addOption(_outputDirectoryFlag,
         defaultsTo: defaultDir.path,
         help: 'The path the directory to create the "all_plugins" project in.\n'
@@ -31,16 +30,13 @@ class CreateAllPluginsAppCommand extends PluginCommand {
   }
 
   /// The location to create the synthesized app project.
-  Directory get _appDirectory => packagesDir.fileSystem
-      .directory(getStringArg(_outputDirectoryFlag))
-      .childDirectory('all_plugins');
+  Directory get _appDirectory => packagesDir.fileSystem.directory(getStringArg(_outputDirectoryFlag)).childDirectory('all_plugins');
 
   /// The synthesized app project.
   RepositoryPackage get app => RepositoryPackage(_appDirectory);
 
   @override
-  String get description =>
-      'Generate Flutter app that includes all plugins in packages.';
+  String get description => 'Generate Flutter app that includes all plugins in packages.';
 
   @override
   String get name => 'all-plugins-app';
@@ -86,10 +82,7 @@ class CreateAllPluginsAppCommand extends PluginCommand {
   }
 
   Future<void> _updateAppGradle() async {
-    final File gradleFile = app
-        .platformDirectory(FlutterPlatform.android)
-        .childDirectory('app')
-        .childFile('build.gradle');
+    final File gradleFile = app.platformDirectory(FlutterPlatform.android).childDirectory('app').childFile('build.gradle');
     if (!gradleFile.existsSync()) {
       throw ToolExit(64);
     }
@@ -122,12 +115,7 @@ class CreateAllPluginsAppCommand extends PluginCommand {
   }
 
   Future<void> _updateManifest() async {
-    final File manifestFile = app
-        .platformDirectory(FlutterPlatform.android)
-        .childDirectory('app')
-        .childDirectory('src')
-        .childDirectory('main')
-        .childFile('AndroidManifest.xml');
+    final File manifestFile = app.platformDirectory(FlutterPlatform.android).childDirectory('app').childDirectory('src').childDirectory('main').childFile('AndroidManifest.xml');
     if (!manifestFile.existsSync()) {
       throw ToolExit(64);
     }
@@ -156,14 +144,12 @@ class CreateAllPluginsAppCommand extends PluginCommand {
     // can cause compilation failures.
     final Pubspec originalPubspec = app.parsePubspec();
     const String dartSdkKey = 'sdk';
-    final VersionConstraint dartSdkConstraint =
-        originalPubspec.environment?[dartSdkKey] ??
-            VersionConstraint.compatibleWith(
-              Version.parse('2.12.0'),
-            );
+    final VersionConstraint dartSdkConstraint = originalPubspec.environment[dartSdkKey] ??
+        VersionConstraint.compatibleWith(
+          Version.parse('2.12.0'),
+        );
 
-    final Map<String, PathDependency> pluginDeps =
-        await _getValidPathDependencies();
+    final Map<String, PathDependency> pluginDeps = await _getValidPathDependencies();
     final Pubspec pubspec = Pubspec(
       'all_plugins',
       description: 'Flutter app containing all 1st party plugins.',
@@ -183,8 +169,7 @@ class CreateAllPluginsAppCommand extends PluginCommand {
   }
 
   Future<Map<String, PathDependency>> _getValidPathDependencies() async {
-    final Map<String, PathDependency> pathDependencies =
-        <String, PathDependency>{};
+    final Map<String, PathDependency> pathDependencies = <String, PathDependency>{};
 
     await for (final PackageEnumerationEntry entry in getTargetPackages()) {
       final RepositoryPackage package = entry.package;
@@ -207,7 +192,7 @@ publish_to: none
 
 version: ${pubspec.version}
 
-environment:${_pubspecMapString(pubspec.environment!)}
+environment:${_pubspecMapString(pubspec.environment)}
 
 dependencies:${_pubspecMapString(pubspec.dependencies)}
 
@@ -242,8 +227,7 @@ dev_dependencies:${_pubspecMapString(pubspec.devDependencies)}
           // path.split leaves a \ on drive components that isn't necessary,
           // and confuses pub, so remove it.
           if (firstComponent.endsWith(r':\')) {
-            components[0] =
-                firstComponent.substring(0, firstComponent.length - 1);
+            components[0] = firstComponent.substring(0, firstComponent.length - 1);
           }
           depPath = p.posix.joinAll(components);
         }

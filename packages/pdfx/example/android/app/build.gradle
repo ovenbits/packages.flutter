@@ -1,3 +1,9 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -21,12 +27,24 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+def kotlin_version = '2.1.0'
 
 android {
-    compileSdkVersion 34
+    compileSdkVersion 35
+    namespace 'io.scer.pdf_renderer_example'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    kotlin {
+        jvmToolchain(17)
+    }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -35,7 +53,7 @@ android {
     defaultConfig {
         applicationId "io.scer.pdfx_example"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
