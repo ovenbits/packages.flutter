@@ -46,9 +46,7 @@ class PdfxPlatformPigeon extends PdfxPlatform {
 
   /// Open PDF file from memory (Uint8List)
   @override
-  Future<PdfDocument> openData(FutureOr<Uint8List> data,
-          {String? password}) async =>
-      _open(
+  Future<PdfDocument> openData(FutureOr<Uint8List> data, {String? password}) async => _open(
         await _api.openDocumentData(OpenDataMessage()
           ..data = await data
           ..password = password),
@@ -118,8 +116,7 @@ class PdfDocumentPigeon extends PdfDocument {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfDocumentPigeon && other.id == id;
+  bool operator ==(Object other) => other is PdfDocumentPigeon && other.id == id;
 
   @override
   int get hashCode => identityHashCode(id);
@@ -200,10 +197,7 @@ class PdfPagePigeon extends PdfPage {
       });
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfPagePigeon &&
-      other.document.hashCode == document.hashCode &&
-      other.pageNumber == pageNumber;
+  bool operator ==(Object other) => other is PdfPagePigeon && other.document.hashCode == document.hashCode && other.pageNumber == pageNumber;
 
   @override
   int get hashCode => document.hashCode ^ pageNumber;
@@ -248,18 +242,14 @@ class PdfPageImagePigeon extends PdfPageImage {
     required bool forPrint,
     required bool removeTempFile,
   }) async {
-    if (format == PdfPageImageFormat.webp &&
-        (UniversalPlatform.isIOS ||
-            UniversalPlatform.isWindows ||
-            UniversalPlatform.isMacOS)) {
+    if (format == PdfPageImageFormat.webp && (UniversalPlatform.isIOS || UniversalPlatform.isWindows || UniversalPlatform.isMacOS)) {
       throw PdfNotSupportException(
         'PDF Renderer on IOS & Windows, MacOs platforms '
         'do not support WEBP format',
       );
     }
 
-    backgroundColor ??=
-        (format == PdfPageImageFormat.jpeg) ? '#FFFFFF' : '#00FFFFFF';
+    backgroundColor ??= (format == PdfPageImageFormat.jpeg) ? '#FFFFFF' : '#00FFFFFF';
 
     final result = await _api.renderPage(RenderPageMessage()
       ..pageId = pageId
@@ -277,9 +267,7 @@ class PdfPageImagePigeon extends PdfPageImage {
 
     final retWidth = result.width, retHeight = result.height;
     late final Uint8List pixels;
-    if (UniversalPlatform.isAndroid ||
-        UniversalPlatform.isIOS ||
-        UniversalPlatform.isMacOS) {
+    if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS || UniversalPlatform.isMacOS) {
       pixels = await getPixels(
         path: result.path,
         removeTempFile: removeTempFile,
@@ -303,9 +291,7 @@ class PdfPageImagePigeon extends PdfPageImage {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfPageImagePigeon &&
-      other.bytes.lengthInBytes == bytes.lengthInBytes;
+  bool operator ==(Object other) => other is PdfPageImagePigeon && other.bytes.lengthInBytes == bytes.lengthInBytes;
 
   @override
   int get hashCode => identityHashCode(id) ^ pageNumber;
@@ -324,6 +310,10 @@ class PdfPageTexturePigeon extends PdfPageTexture {
 
   int? _texWidth;
   int? _texHeight;
+  bool _updaitingRect = false;
+
+  @override
+  bool get updaitingRect => _updaitingRect;
 
   @override
   int? get textureWidth => _texWidth;
@@ -335,8 +325,7 @@ class PdfPageTexturePigeon extends PdfPageTexture {
   bool get hasUpdatedTexture => _texWidth != null;
 
   @override
-  Future<void> dispose() =>
-      _api.unregisterTexture(UnregisterTextureMessage()..id = id);
+  Future<void> dispose() => _api.unregisterTexture(UnregisterTextureMessage()..id = id);
 
   @override
   Future<bool> updateRect({
@@ -354,6 +343,7 @@ class PdfPageTexturePigeon extends PdfPageTexture {
     String? backgroundColor,
     bool allowAntiAliasing = true,
   }) async {
+    _updaitingRect = true;
     try {
       final params = UpdateTextureMessage()
         ..documentId = documentId
@@ -378,6 +368,8 @@ class PdfPageTexturePigeon extends PdfPageTexture {
       return true;
     } catch (error) {
       return false;
+    } finally {
+      _updaitingRect = false;
     }
   }
 
@@ -385,9 +377,5 @@ class PdfPageTexturePigeon extends PdfPageTexture {
   int get hashCode => identityHashCode(id) ^ pageNumber;
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfPageTexturePigeon &&
-      other.id == id &&
-      other.pageId == pageId &&
-      other.pageNumber == pageNumber;
+  bool operator ==(Object other) => other is PdfPageTexturePigeon && other.id == id && other.pageId == pageId && other.pageNumber == pageNumber;
 }

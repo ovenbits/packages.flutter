@@ -25,6 +25,8 @@ abstract class PdfPageTexture {
 
   bool get hasUpdatedTexture;
 
+  bool get updaitingRect;
+
   /// Release the object.
   Future<void> dispose();
 

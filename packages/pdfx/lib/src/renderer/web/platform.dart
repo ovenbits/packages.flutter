@@ -33,8 +33,7 @@ class PdfxWeb extends PdfxPlatform {
   }
 
   static final _eventStreamController = StreamController<int>();
-  final _eventChannel =
-      const PluginEventChannel('io.scer.pdf_renderer/web_events');
+  final _eventChannel = const PluginEventChannel('io.scer.pdf_renderer/web_events');
 
   PdfDocument _open(DocumentInfo obj, String sourceName) => PdfDocumentWeb._(
         sourceName: sourceName,
@@ -42,8 +41,7 @@ class PdfxWeb extends PdfxPlatform {
         pagesCount: obj.pagesCount,
       );
 
-  Future<DocumentInfo> _openDocumentData(ByteBuffer data,
-      {String? password}) async {
+  Future<DocumentInfo> _openDocumentData(ByteBuffer data, {String? password}) async {
     final document = await pdfjsGetDocumentFromData(data, password: password);
 
     return _documents.register(document).info;
@@ -59,10 +57,8 @@ class PdfxWeb extends PdfxPlatform {
   }
 
   @override
-  Future<PdfDocument> openData(FutureOr<Uint8List> data,
-      {String? password}) async {
-    final obj =
-        await _openDocumentData((await data).buffer, password: password);
+  Future<PdfDocument> openData(FutureOr<Uint8List> data, {String? password}) async {
+    final obj = await _openDocumentData((await data).buffer, password: password);
 
     return _open(obj, 'memory:binary');
   }
@@ -184,10 +180,7 @@ class PdfPageWeb extends PdfPage {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfPageWeb &&
-      other.document.hashCode == document.hashCode &&
-      other.pageNumber == pageNumber;
+  bool operator ==(Object other) => other is PdfPageWeb && other.document.hashCode == document.hashCode && other.pageNumber == pageNumber;
 
   @override
   int get hashCode => document.hashCode ^ pageNumber;
@@ -238,11 +231,9 @@ class PdfPageImageWeb extends PdfPageImage {
   }) async {
     final preViewport = pdfJsPage.getViewport(PdfjsViewportParams(scale: 1));
     final canvas = web.HTMLCanvasElement();
-    final context = canvas.getContext('2d', AlphaOption(alpha: false))
-        as web.CanvasRenderingContext2D;
+    final context = canvas.getContext('2d', AlphaOption(alpha: false)) as web.CanvasRenderingContext2D;
 
-    final viewport = pdfJsPage
-        .getViewport(PdfjsViewportParams(scale: width / preViewport.width));
+    final viewport = pdfJsPage.getViewport(PdfjsViewportParams(scale: width / preViewport.width));
 
     canvas
       ..height = viewport.height.toInt()
@@ -279,9 +270,7 @@ class PdfPageImageWeb extends PdfPageImage {
   }
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfPageImageWeb &&
-      other.bytes.lengthInBytes == bytes.lengthInBytes;
+  bool operator ==(Object other) => other is PdfPageImageWeb && other.bytes.lengthInBytes == bytes.lengthInBytes;
 
   @override
   int get hashCode => identityHashCode(id) ^ pageNumber;
@@ -300,6 +289,10 @@ class PdfPageTextureWeb extends PdfPageTexture {
 
   int? _texWidth;
   int? _texHeight;
+  bool _updaitingRect = false;
+
+  @override
+  bool get updaitingRect => _updaitingRect;
 
   @override
   int? get textureWidth => _texWidth;
@@ -332,6 +325,7 @@ class PdfPageTextureWeb extends PdfPageTexture {
     String? backgroundColor,
     bool allowAntiAliasing = true,
   }) {
+    _updaitingRect = true;
     return _renderRaw(
       documentId: documentId,
       pageNumber: pageNumber,
@@ -346,7 +340,7 @@ class PdfPageTextureWeb extends PdfPageTexture {
       handleRawData: (src, width, height) {
         _updateTexSize(id, textureWidth!, textureHeight!, src);
         PdfxWeb._eventStreamController.sink.add(id);
-
+        _updaitingRect = false;
         return true;
       },
     );
@@ -356,14 +350,9 @@ class PdfPageTextureWeb extends PdfPageTexture {
   int get hashCode => identityHashCode(id) ^ pageNumber;
 
   @override
-  bool operator ==(Object other) =>
-      other is PdfPageTextureWeb &&
-      other.id == id &&
-      other.pageId == pageId &&
-      other.pageNumber == pageNumber;
+  bool operator ==(Object other) => other is PdfPageTextureWeb && other.id == id && other.pageId == pageId && other.pageNumber == pageNumber;
 
-  RgbaData _updateTexSize(int id, int width, int height,
-      [Uint8List? sourceData]) {
+  RgbaData _updateTexSize(int id, int width, int height, [Uint8List? sourceData]) {
     final oldData = _textures[id];
     if (oldData != null && oldData.width == width && oldData.height == height) {
       return oldData;
@@ -415,10 +404,7 @@ class PdfPageTextureWeb extends PdfPageTexture {
     //final fullHeight = args['fullHeight'] as double? ?? ph;
     final preWidth = width;
     final preHeight = height;
-    if (preWidth == null ||
-        preHeight == null ||
-        preWidth <= 0 ||
-        preHeight <= 0) {
+    if (preWidth == null || preHeight == null || preWidth <= 0 || preHeight <= 0) {
       return false;
     }
 
@@ -436,8 +422,7 @@ class PdfPageTextureWeb extends PdfPageTexture {
       ..width = preWidth
       ..height = preHeight;
 
-    final context = canvas.getContext('2d', AlphaOption(alpha: false))
-        as web.CanvasRenderingContext2D;
+    final context = canvas.getContext('2d', AlphaOption(alpha: false)) as web.CanvasRenderingContext2D;
 
     if (backgroundColor != null) {
       context
