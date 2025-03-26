@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:pdfx/src/renderer/interfaces/document.dart';
 import 'package:pdfx/src/renderer/interfaces/page.dart';
 import 'package:pdfx/src/viewer/base/base_pdf_builders.dart';
@@ -28,6 +28,7 @@ class PdfView extends StatefulWidget {
     this.renderer = _render,
     this.scrollDirection = Axis.horizontal,
     this.reverse = false,
+    this.showScrollbar = false,
     this.pageSnapping = true,
     this.wantKeepAlive = false,
     this.gaplessPlayback = false,
@@ -60,6 +61,9 @@ class PdfView extends StatefulWidget {
 
   /// Reverse scroll direction, useful for RTL support
   final bool reverse;
+
+  /// Display gallery view scoll bar
+  final bool showScrollbar;
 
   /// Set to false to disable page snapping, useful for custom scroll behavior.
   final bool pageSnapping;
@@ -213,28 +217,32 @@ class _PdfViewState extends State<PdfView> {
         heroAttributes: PhotoViewHeroAttributes(tag: '${document.id}-$index'),
       );
 
-  Widget _buildLoaded(BuildContext context) => PhotoViewGallery.builder(
-        builder: (context, index) => widget.builders.pageBuilder(
-          context,
-          _getPageImage(index),
-          index,
-          _controller._document!,
-        ),
-        itemCount: _controller._document?.pagesCount ?? 0,
-        loadingBuilder: (_, __) => widget.builders.pageLoaderBuilder?.call(context) ?? const SizedBox(),
-        backgroundDecoration: widget.backgroundDecoration,
-        pageController: _controller._pageController,
-        onPageChanged: (index) {
-          final pageNumber = index + 1;
-          _controller.pageListenable.value = pageNumber;
-          widget.onPageChanged?.call(pageNumber);
-        },
-        scrollDirection: widget.scrollDirection,
-        reverse: widget.reverse,
-        scrollPhysics: widget.physics,
-        pageSnapping: widget.pageSnapping,
-        allowImplicitScrolling: widget.allowImplicitScrolling,
-        wantKeepAlive: widget.wantKeepAlive,
-        gaplessPlayback: widget.gaplessPlayback,
-      );
+  Widget _buildLoaded(BuildContext context) {
+    final gallery = PhotoViewGallery.builder(
+      builder: (context, index) => widget.builders.pageBuilder(
+        context,
+        _getPageImage(index),
+        index,
+        _controller._document!,
+      ),
+      itemCount: _controller._document?.pagesCount ?? 0,
+      loadingBuilder: (_, __) => widget.builders.pageLoaderBuilder?.call(context) ?? const SizedBox(),
+      backgroundDecoration: widget.backgroundDecoration,
+      pageController: _controller._pageController,
+      onPageChanged: (index) {
+        final pageNumber = index + 1;
+        _controller.pageListenable.value = pageNumber;
+        widget.onPageChanged?.call(pageNumber);
+      },
+      scrollDirection: widget.scrollDirection,
+      reverse: widget.reverse,
+      scrollPhysics: widget.physics,
+      pageSnapping: widget.pageSnapping,
+      allowImplicitScrolling: widget.allowImplicitScrolling,
+      wantKeepAlive: widget.wantKeepAlive,
+      gaplessPlayback: widget.gaplessPlayback,
+    );
+
+    return widget.showScrollbar ? Scrollbar(controller: _controller._pageController, child: gallery) : gallery;
+  }
 }
