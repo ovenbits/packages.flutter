@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/widgets.dart' hide InteractiveViewer, TransformationController;
+import 'package:flutter/widgets.dart'
+    hide InteractiveViewer, TransformationController;
 import 'package:pdfx/src/renderer/interfaces/document.dart';
 import 'package:pdfx/src/renderer/interfaces/page.dart';
 import 'package:pdfx/src/viewer/base/base_pdf_builders.dart';
@@ -80,7 +81,8 @@ class PdfViewPinch extends StatefulWidget {
   State<PdfViewPinch> createState() => _PdfViewPinchState();
 }
 
-class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderStateMixin {
+class _PdfViewPinchState extends State<PdfViewPinch>
+    with SingleTickerProviderStateMixin {
   PdfControllerPinch get _controller => widget.controller;
   final List<_PdfPageState> _pages = [];
   final List<_PdfPageState> _pendedPageDisposes = [];
@@ -103,7 +105,9 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
   void initState() {
     super.initState();
     if (UniversalPlatform.isWindows) {
-      throw UnimplementedError('PdfViewPinch not supported in Windows, usage PdfView instead');
+      throw UnimplementedError(
+        'PdfViewPinch not supported in Windows, usage PdfView instead',
+      );
     }
     _controller._attach(this);
     _animController = AnimationController(
@@ -170,9 +174,14 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
       } // do nothing
       _animGoTo?.removeListener(_updateControllerMatrix);
       _animController.reset();
-      _animGoTo = Matrix4Tween(begin: _controller.value, end: destination).animate(_animController);
+      _animGoTo = Matrix4Tween(
+        begin: _controller.value,
+        end: destination,
+      ).animate(_animController);
       _animGoTo!.addListener(_updateControllerMatrix);
-      await _animController.animateTo(1.0, duration: duration, curve: curve).orCancel;
+      await _animController
+          .animateTo(1.0, duration: duration, curve: curve)
+          .orCancel;
     } on TickerCanceled {
       // expected
     }
@@ -200,7 +209,9 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
         if (mounted) {
           final initialPage = _controller.initialPage;
           if (initialPage != 1) {
-            final m = _controller.calculatePageFitMatrix(pageNumber: initialPage);
+            final m = _controller.calculatePageFitMatrix(
+              pageNumber: initialPage,
+            );
             if (m != null) {
               _controller.value = m;
             }
@@ -217,7 +228,10 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
 
   /// Default page layout logic that layouts pages vertically.
   void _reLayoutDefault(Size viewSize) {
-    final maxWidth = _pages.fold<double>(0.0, (maxWidth, page) => max(maxWidth, page.pageSize.width));
+    final maxWidth = _pages.fold<double>(
+      0.0,
+      (maxWidth, page) => max(maxWidth, page.pageSize.width),
+    );
     final ratio = (viewSize.width - _padding * 2) / maxWidth;
     //print('IK. Ratio: $ratio, view size: $viewSize, max pages width: $maxWidth');
     if (widget.scrollDirection == Axis.horizontal) {
@@ -260,7 +274,12 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
     m ??= _controller.value;
 
     final r = m.row0[0];
-    final exposed = Rect.fromLTWH(-m.row0[3], -m.row1[3], _lastViewSize!.width, _lastViewSize!.height);
+    final exposed = Rect.fromLTWH(
+      -m.row0[3],
+      -m.row1[3],
+      _lastViewSize!.width,
+      _lastViewSize!.height,
+    );
     var pagesToUpdate = 0;
     var changeCount = 0;
     _visiblePages.clear();
@@ -269,7 +288,12 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
         page.isVisibleInsideView = false;
         continue;
       }
-      final pageRectZoomed = Rect.fromLTRB(page.rect!.left * r, page.rect!.top * r, page.rect!.right * r, page.rect!.bottom * r);
+      final pageRectZoomed = Rect.fromLTRB(
+        page.rect!.left * r,
+        page.rect!.top * r,
+        page.rect!.right * r,
+        page.rect!.bottom * r,
+      );
       final part = pageRectZoomed.intersect(exposed);
       final isVisible = !part.isEmpty;
       if (isVisible) {
@@ -302,15 +326,21 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
   }
 
   void _needReLayout() {
-    Future.delayed(Duration.zero, () => setState(() {}));
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   void _needPagePreviewGeneration() {
-    Future.delayed(Duration.zero, _updatePageState);
+    Future.delayed(Duration.zero, () {
+      if (!mounted) return;
+      _updatePageState();
+    });
   }
 
   Future<void> _updatePageState() async {
-    if (_pages.isEmpty) return;
+    if (!mounted || _pages.isEmpty) return;
 
     bool needPagePreviewGeneration = false;
 
@@ -321,9 +351,19 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
       }
       final m = _controller.value;
       final r = m.row0[0];
-      final exposed = Rect.fromLTWH(-m.row0[3], -m.row1[3], _lastViewSize!.width, _lastViewSize!.height).inflate(_extraBufferAroundView);
+      final exposed = Rect.fromLTWH(
+        -m.row0[3],
+        -m.row1[3],
+        _lastViewSize!.width,
+        _lastViewSize!.height,
+      ).inflate(_extraBufferAroundView);
 
-      final pageRectZoomed = Rect.fromLTRB(page.rect!.left * r, page.rect!.top * r, page.rect!.right * r, page.rect!.bottom * r);
+      final pageRectZoomed = Rect.fromLTRB(
+        page.rect!.left * r,
+        page.rect!.top * r,
+        page.rect!.right * r,
+        page.rect!.bottom * r,
+      );
       final part = pageRectZoomed.intersect(exposed);
       if (part.isEmpty) {
         continue;
@@ -348,6 +388,8 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
           backgroundColor: '#ffffff',
         );
 
+        if (!mounted) return;
+
         page
           ..status = _PdfPageLoadingStatus.pageLoaded
           ..updatePreview();
@@ -355,17 +397,20 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
       }
     }
 
+    if (!mounted) return;
+
     _needRealSizeOverlayUpdate();
 
     if (needPagePreviewGeneration) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        if (!mounted) return;
         _determinePagesToShow();
       });
     }
   }
 
   Future<void> _updateRealSizeOverlay() async {
-    if (_pages.isEmpty) return;
+    if (!mounted || _pages.isEmpty) return;
 
     //print('IK. _updateRealSizeOverlay');
     const fullPurgeDistThreshold = 33;
@@ -374,14 +419,25 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
     final dpr = View.of(context).devicePixelRatio;
     final m = _controller.value;
     final r = m.row0[0];
-    final exposed = Rect.fromLTWH(-m.row0[3], -m.row1[3], _lastViewSize!.width, _lastViewSize!.height);
+    final exposed = Rect.fromLTWH(
+      -m.row0[3],
+      -m.row1[3],
+      _lastViewSize!.width,
+      _lastViewSize!.height,
+    );
     final distBase = max(_lastViewSize!.height, _lastViewSize!.width);
     for (var i = 0; i < _pages.length; i++) {
       final page = _pages[i];
-      if (page.rect == null || page.status != _PdfPageLoadingStatus.pageLoaded) {
+      if (page.rect == null ||
+          page.status != _PdfPageLoadingStatus.pageLoaded) {
         continue;
       }
-      final pageRectZoomed = Rect.fromLTRB(page.rect!.left * r, page.rect!.top * r, page.rect!.right * r, page.rect!.bottom * r);
+      final pageRectZoomed = Rect.fromLTRB(
+        page.rect!.left * r,
+        page.rect!.top * r,
+        page.rect!.right * r,
+        page.rect!.bottom * r,
+      );
       final part = pageRectZoomed.intersect(exposed);
       if (part.isEmpty) {
         final dist = (exposed.center - pageRectZoomed.center).distance;
@@ -394,7 +450,9 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
       }
       final fw = pageRectZoomed.width * dpr;
       final fh = pageRectZoomed.height * dpr;
-      if (page.preview?.hasUpdatedTexture == true && fw <= page.preview!.textureWidth! && fh <= page.preview!.textureHeight!) {
+      if (page.preview?.hasUpdatedTexture == true &&
+          fw <= page.preview!.textureWidth! &&
+          fh <= page.preview!.textureHeight!) {
         // no real-size overlay needed; use preview
         page.realSizeOverlayRect = null;
       } else {
@@ -444,12 +502,17 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
     }
   }
 
-  final _realSizeOverlayUpdateBufferDuration = const Duration(milliseconds: 150);
+  final _realSizeOverlayUpdateBufferDuration = const Duration(
+    milliseconds: 150,
+  );
 
   void _needRealSizeOverlayUpdate() {
     _cancelLastRealSizeUpdate();
     // Using Timer as cancellable version of [Future.delayed]
-    _realSizeUpdateTimer = Timer(_realSizeOverlayUpdateBufferDuration, _updateRealSizeOverlay);
+    _realSizeUpdateTimer = Timer(
+      _realSizeOverlayUpdateBufferDuration,
+      _updateRealSizeOverlay,
+    );
   }
 
   @override
@@ -477,12 +540,16 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
         case PdfLoadingState.loading:
           return KeyedSubtree(
             key: const Key('pdfx.root.loading'),
-            child: builders.documentLoaderBuilder?.call(context) ?? const SizedBox(),
+            child:
+                builders.documentLoaderBuilder?.call(context) ??
+                const SizedBox(),
           );
         case PdfLoadingState.error:
           return KeyedSubtree(
             key: const Key('pdfx.root.error'),
-            child: builders.errorBuilder?.call(context, loadingError!) ?? Center(child: Text(loadingError.toString())),
+            child:
+                builders.errorBuilder?.call(context, loadingError!) ??
+                Center(child: Text(loadingError.toString())),
           );
         case PdfLoadingState.success:
           return KeyedSubtree(
@@ -492,7 +559,8 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
       }
     }();
 
-    final defaultBuilder = builders as PdfViewPinchBuilders<DefaultBuilderOptions>;
+    final defaultBuilder =
+        builders as PdfViewPinchBuilders<DefaultBuilderOptions>;
     final options = defaultBuilder.options;
 
     return AnimatedSwitcher(
@@ -514,14 +582,19 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
           scrollControls: InteractiveViewerScrollControls.scrollPans,
           constrained: false,
           alignPanAxis: false,
-          boundaryMargin: _minScale < 1 ? const EdgeInsets.all(double.infinity) : EdgeInsets.zero,
+          boundaryMargin: _minScale < 1
+              ? const EdgeInsets.all(double.infinity)
+              : EdgeInsets.zero,
           minScale: _minScale,
           maxScale: _maxScale,
           panEnabled: true,
           scaleEnabled: true,
           child: SafeArea(
             child: Stack(
-              children: <Widget>[SizedBox(width: docSize.width, height: docSize.height), ...iterateLaidOutPages(viewSize)],
+              children: <Widget>[
+                SizedBox(width: docSize.width, height: docSize.height),
+                ...iterateLaidOutPages(viewSize),
+              ],
             ),
           ),
         );
@@ -533,14 +606,24 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
     if (!_firstControllerAttach && _pages.isNotEmpty) {
       final m = _controller.value;
       final r = m.row0[0];
-      final exposed = Rect.fromLTWH(-m.row0[3], -m.row1[3], viewSize.width, viewSize.height).inflate(_padding);
+      final exposed = Rect.fromLTWH(
+        -m.row0[3],
+        -m.row1[3],
+        viewSize.width,
+        viewSize.height,
+      ).inflate(_padding);
 
       for (var i = 0; i < _pages.length; i++) {
         final page = _pages[i];
         if (page.rect == null) {
           continue;
         }
-        final pageRectZoomed = Rect.fromLTRB(page.rect!.left * r, page.rect!.top * r, page.rect!.right * r, page.rect!.bottom * r);
+        final pageRectZoomed = Rect.fromLTRB(
+          page.rect!.left * r,
+          page.rect!.top * r,
+          page.rect!.right * r,
+          page.rect!.bottom * r,
+        );
         final part = pageRectZoomed.intersect(exposed);
         page.isVisibleInsideView = !part.isEmpty;
         if (!page.isVisibleInsideView) {
@@ -567,19 +650,21 @@ class _PdfViewPinchState extends State<PdfViewPinch> with SingleTickerProviderSt
                       : Container(),
                 ),
                 ValueListenableBuilder<int>(
-                    valueListenable: page._realSizeNotifier,
-                    builder: (context, value, child) {
-                      //print('IK. realSizeNotifier handler');
-                      return page.realSizeOverlayRect != null && page.realSize != null
-                          ? Positioned(
-                              left: page.realSizeOverlayRect!.left,
-                              top: page.realSizeOverlayRect!.top,
-                              width: page.realSizeOverlayRect!.width,
-                              height: page.realSizeOverlayRect!.height,
-                              child: PdfTexture(textureId: page.realSize!.id),
-                            )
-                          : Container();
-                    }),
+                  valueListenable: page._realSizeNotifier,
+                  builder: (context, value, child) {
+                    //print('IK. realSizeNotifier handler');
+                    return page.realSizeOverlayRect != null &&
+                            page.realSize != null
+                        ? Positioned(
+                            left: page.realSizeOverlayRect!.left,
+                            top: page.realSizeOverlayRect!.top,
+                            width: page.realSizeOverlayRect!.width,
+                            height: page.realSizeOverlayRect!.height,
+                            child: PdfTexture(textureId: page.realSize!.id),
+                          )
+                        : Container();
+                  },
+                ),
               ],
             ),
           ),
