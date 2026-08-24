@@ -1,4 +1,10 @@
 import Foundation
+import CoreGraphics
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 #if os(iOS)
 

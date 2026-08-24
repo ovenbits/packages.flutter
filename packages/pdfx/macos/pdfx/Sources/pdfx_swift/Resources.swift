@@ -1,3 +1,6 @@
+import Foundation
+import CoreGraphics
+
 enum RepositoryError: Error {
     case ItemNotFound
 }

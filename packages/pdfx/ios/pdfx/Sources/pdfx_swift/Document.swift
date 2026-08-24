@@ -1,3 +1,11 @@
+import Foundation
+import CoreGraphics
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
+
 class Document {
     let id: String
     let renderer: CGPDFDocument
