@@ -14,8 +14,26 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "pdfx_pigeon",
+            dependencies: [
+                .product(name: "FlutterFramework", package: "FlutterFramework")
+            ],
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include/pdfx")
+            ]
+        ),
+        .target(
+            name: "pdfx_swift",
+            dependencies: [
+                "pdfx_pigeon",
+                .product(name: "FlutterFramework", package: "FlutterFramework")
+            ]
+        ),
+        .target(
             name: "pdfx",
             dependencies: [
+                "pdfx_swift",
                 .product(name: "FlutterFramework", package: "FlutterFramework")
             ],
             cSettings: [
