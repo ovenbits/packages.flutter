@@ -14,7 +14,8 @@ Downloaded by pub (not CocoaPods).
   s.license          = { :type => 'MIT', :file => '../LICENSE' }
   s.author           = { 'Serge Shkurko' => 'sergeshkurko@outlook.com' }
   s.source           = { :http => 'https://github.com/ScerIO/packages.flutter/tree/main/packages/pdfx' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'pdfx/Sources/pdfx/**/*.{h,m,swift}'
+  s.public_header_files = 'pdfx/Sources/pdfx/include/pdfx/**/*.h'
   s.dependency 'Flutter'
   s.platform = :ios, '8.0'
 
