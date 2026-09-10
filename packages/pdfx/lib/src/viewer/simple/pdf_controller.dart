@@ -39,12 +39,20 @@ class PdfController with BasePdfController {
   @override
   int? get pagesCount => _document?.pagesCount;
 
+  int? get _pageControllerIndex {
+    final controller = _pageController;
+    if (controller == null || !controller.hasClients) {
+      return null;
+    }
+    return controller.page?.round();
+  }
+
   /// Changes which page is displayed in the controlled [PdfView].
   ///
   /// Jumps the page position from its current value to the given value,
   /// without animation, and without checking if the new value is in range.
   @override
-  void jumpToPage(int page) => _pageController!.jumpToPage(page - 1);
+  void jumpToPage(int page) => _pageController?.jumpToPage(page - 1);
 
   /// Animates the controlled [PdfView] from the current page to the given page.
   ///
@@ -58,12 +66,17 @@ class PdfController with BasePdfController {
     double? padding,
     Duration duration = const Duration(milliseconds: 500),
     Curve curve = Curves.easeInOut,
-  }) =>
-      _pageController!.animateToPage(
-        page - 1,
-        duration: duration,
-        curve: curve,
-      );
+  }) {
+    final controller = _pageController;
+    if (controller == null) {
+      return Future.value();
+    }
+    return controller.animateToPage(
+      page - 1,
+      duration: duration,
+      curve: curve,
+    );
+  }
 
   /// Animates the controlled [PdfView] to the next page.
   ///
@@ -74,8 +87,18 @@ class PdfController with BasePdfController {
   Future<void> nextPage({
     required Duration duration,
     required Curve curve,
-  }) =>
-      _pageController!.animateToPage(_pageController!.page!.round() + 1, duration: duration, curve: curve);
+  }) {
+    final controller = _pageController;
+    final currentIndex = _pageControllerIndex;
+    if (controller == null || currentIndex == null) {
+      return Future.value();
+    }
+    return controller.animateToPage(
+      currentIndex + 1,
+      duration: duration,
+      curve: curve,
+    );
+  }
 
   /// Animates the controlled [PdfView] to the previous page.
   ///
@@ -86,8 +109,18 @@ class PdfController with BasePdfController {
   Future<void> previousPage({
     required Duration duration,
     required Curve curve,
-  }) =>
-      _pageController!.animateToPage(_pageController!.page!.round() - 1, duration: duration, curve: curve);
+  }) {
+    final controller = _pageController;
+    final currentIndex = _pageControllerIndex;
+    if (controller == null || currentIndex == null) {
+      return Future.value();
+    }
+    return controller.animateToPage(
+      currentIndex - 1,
+      duration: duration,
+      curve: curve,
+    );
+  }
 
   /// Load document
   Future<void> loadDocument(
@@ -148,6 +181,7 @@ class PdfController with BasePdfController {
 
   @override
   void dispose() {
+    _detach();
     _pageController?.dispose();
     _document?.close();
   }

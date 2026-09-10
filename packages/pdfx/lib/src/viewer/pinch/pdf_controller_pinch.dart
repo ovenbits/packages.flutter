@@ -27,6 +27,7 @@ class PdfControllerPinch extends TransformationController with BasePdfController
 
   @override
   void dispose() {
+    _detach();
     _document?.close();
     super.dispose();
   }
@@ -48,8 +49,12 @@ class PdfControllerPinch extends TransformationController with BasePdfController
   /// the page that has the largest area from [visiblePages].
   @override
   int get page {
+    final state = _state;
+    if (state == null) {
+      return pageListenable.value;
+    }
     MapEntry<int, double>? max;
-    for (final v in visiblePages.entries) {
+    for (final v in state._visiblePages.entries) {
       if (max == null || max.value < v.value) {
         max = v;
       }
@@ -63,7 +68,13 @@ class PdfControllerPinch extends TransformationController with BasePdfController
   int? get pagesCount => _document?.pagesCount;
 
   /// Get page location. If the page is out of view,
-  Rect? getPageRect(int pageNumber) => _state!._pages[pageNumber - 1].rect;
+  Rect? getPageRect(int pageNumber) {
+    final state = _state;
+    if (state == null || pageNumber < 1 || pageNumber > state._pages.length) {
+      return null;
+    }
+    return state._pages[pageNumber - 1].rect;
+  }
 
   /// Load document
   Future<void> loadDocument(
@@ -134,8 +145,10 @@ class PdfControllerPinch extends TransformationController with BasePdfController
     _state = pdfViewState;
 
     addListener(() {
+      final state = _state;
+      if (state == null) return;
       if (page != _prevPage) {
-        _state!.widget.onPageChanged?.call(page);
+        state.widget.onPageChanged?.call(page);
         pageListenable.value = page;
         _prevPage = page;
       }
@@ -165,12 +178,17 @@ class PdfControllerPinch extends TransformationController with BasePdfController
     Matrix4? destination,
     Duration duration = const Duration(milliseconds: 200),
     Curve curve = Curves.easeInOut,
-  }) =>
-      _state!._goTo(
-        destination: destination,
-        duration: duration,
-        curve: curve,
-      );
+  }) {
+    final state = _state;
+    if (state == null) {
+      return Future.value();
+    }
+    return state._goTo(
+      destination: destination,
+      duration: duration,
+      curve: curve,
+    );
+  }
 
   /// Go to the specified page.
   @override
@@ -180,6 +198,9 @@ class PdfControllerPinch extends TransformationController with BasePdfController
     Duration duration = const Duration(milliseconds: 500),
     Curve curve = Curves.easeInOut,
   }) {
+    if (_state == null || _document == null) {
+      return Future.value();
+    }
     if (pageNumber < 1 || pageNumber > _document!.pagesCount) {
       return Future.value();
     }
@@ -240,7 +261,7 @@ class PdfControllerPinch extends TransformationController with BasePdfController
   /// The map keys are the page numbers.
   /// And each page number is associated to the page area (width x height)
   ///  exposed to the viewport;
-  Map<int, double> get visiblePages => _state!._visiblePages;
+  Map<int, double> get visiblePages => _state?._visiblePages ?? const {};
 
   /// Calculate the matrix that corresponding to the page position.
   Matrix4? calculatePageFitMatrix({required int pageNumber, double? padding}) {
