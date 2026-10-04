@@ -27,7 +27,7 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-def kotlin_version = '2.1.0'
+def kotlin_version = '2.3.21'
 
 android {
     compileSdkVersion 35
